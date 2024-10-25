@@ -1,1 +1,1 @@
-# election-scrapper
+# election-scraper
