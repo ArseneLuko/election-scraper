@@ -6,13 +6,6 @@ email: lukas@lukaskarasek.cz
 discord: lukaskarasek__77224
 """
 
-# TODO: possibility to change year (should work with change the link_base 
-# valuable eg. https://www.volby.cz/pls/ps2017nss/ -> 
-# https://www.volby.cz/pls/ps2021nss/)
-
-# TODO: split get_links_to_districts() and 
-# get_links_to_town_results(link_town_results):
-
 # TODO: check for Response 200 
 
 import csv
@@ -21,21 +14,33 @@ import requests
 from bs4 import BeautifulSoup
 
 link_base = "https://www.volby.cz/pls/ps2017nss/"
-link_elections_2017 = link_base + "ps3?xjazyk=CZ"
+link_elections = link_base + "ps3?xjazyk=CZ"
 
-def get_links_to_districts():
+def load_all_tables(webpage: str):
+    """Load all tags <table> from a link
+
+    Args:
+        webpage (str): Link to webpage to be scrape
+
+    Returns:
+        list: List of <table> tags
+    """
+    # load whole page to a variable and parse it
+    html_source = requests.get(webpage)
+    html_beautifulsoup = BeautifulSoup(html_source.text, 'html.parser')
+
+    # find all table tags on page and return them (list of tables)
+    tables = html_beautifulsoup.find_all('table')
+    return tables
+
+def get_links_to_districts(webpage):
     """From the website volby.cz from results for year 2017 gets links
     to all districts (Okresy) and return them as a dictionary with
     pairs: "name of region": "link"
     """
-    # load whole page to a variable and parse it
-    html_source = requests.get(link_elections_2017)
-    html_beautifulsoup = BeautifulSoup(html_source.text, 'html.parser')
 
-    # find all table tags on page and save them to a variable (list of tables)
-    tables = html_beautifulsoup.find_all('table')
-    # now lenght of 'tables' is number of occurencies of the tag
-    # print(len(tables)) # -> 14 in case of 2017
+    # load all tables
+    tables = load_all_tables(webpage)
 
     # create a dictionary with pairs: name of a region 
     # and a link to its list of towns
@@ -59,14 +64,8 @@ def get_links_to_districts():
     return list_of_regions_and_links
 
 def get_links_to_town_results(link_town_results, save_codes=False):
-    # load whole page to a variable and parse it
-    html_source = requests.get(link_town_results)
-    html_beautifulsoup = BeautifulSoup(html_source.text, "html.parser")
-
-    # find all table tags on page and save them to a variable (list of tables)
-    tables = html_beautifulsoup.find_all('table')
-
-    # print(html_beautifulsoup.prettify())  # tessting line
+    # load all tables
+    tables = load_all_tables(link_town_results)
 
     # create a dictionary with pairs: name of a town 
     # and a link to its results
@@ -91,13 +90,9 @@ def get_links_to_town_results(link_town_results, save_codes=False):
 
     return list_of_towns_and_links
 
-def scrape_results_for_town(link_to_town='https://www.volby.cz/pls/ps2017/ps311?xjazyk=CZ&xkraj=12&xobec=506761&xvyber=7103'):
-    # load whole page to a variable and parse it
-    html_source = requests.get(link_to_town)
-    html_beautifulsoup = BeautifulSoup(html_source.text, "html.parser")
-
-    # find all table tags on page and save them to a variable (list of tables)
-    tables = html_beautifulsoup.find_all('table')
+def scrape_results_for_town(link_to_town):
+    # load all tables
+    tables = load_all_tables(link_to_town)
 
     # scrape registed electors (td with 'sa2' headers), envelopes ('sa3') and valid votes ('sa6') 
     # (they all are in first table on the page)
@@ -151,21 +146,23 @@ def collect_results(towns_list):
     return results_for_all_town
 
 def save_csv(file_name, results):
+    """Save '.csv' file with provided file name and return True if file exists
 
-    # open file with context manager
+    Args:
+        file_name (str): Name of file to be saved (*.csv)
+        results (list): List of lists - rows to be saved
+
+    Returns:
+        bool: Returns true if file exists after savig
+    """
+    # Open file with context manager
     with open(file_name, mode='w', encoding='utf-8') as results_file:
         results_writer = csv.writer(results_file)
         results_writer.writerows(results)
 
-    # check if file was created and send it as result
+    # Check if file was created and send it as result
     return os.path.isfile(file_name)
 
 if __name__ == "__main__":
     # temp_results = scrape_results_for_town('http://httpbin.org/status/404') # testing line
-    temp_results = scrape_results_for_town() # testing line
-
     pass
-    
-
-    
-    

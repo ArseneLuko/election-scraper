@@ -5,3 +5,6 @@ Run the main script 'scraper.py' with at least one arguments - the name of distr
 
 ## Name of district - first argument
 Form you can use
+
+# Notes
+2021 - not implemented because 'nss' (Nejvyšší správní soud)
