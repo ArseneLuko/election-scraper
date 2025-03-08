@@ -12,7 +12,8 @@ import scraper_functions
 
 language = {
     "no_argv": "Nezadali jste žádný argument. Pro nápovědu se podívejte do souboru README.md. Program ukončen.",
-    "missing_district": "Region » {} « není v seznamu regionů. Pro vypsání regionů spusťte skript s argumentem: seznam-regionu"
+    "missing_district": "Region » {} « není v seznamu regionů. Pro vypsání regionů spusťte skript s argumentem: seznam-regionu",
+    "successfully_saved": "Soubor » {} « byl úspěšně uložen."
 }
 
 if __name__ == "__main__":
@@ -47,13 +48,14 @@ if __name__ == "__main__":
             results_file_name = 'results.csv'
 
         # save results to a csv file
-        scraper_functions.save_csv(results_file_name, results)
-
-        print(results)  # testing line
+        save_status = scraper_functions.save_csv(results_file_name, results)
+        
+        if save_status:
+            print(language["successfully_saved"].format(results_file_name))
+        
+        pass # testing line
 
     else:
         print(language["missing_district"].format(sys.argv[1]))
 
     pass  # end of script  # testing line
-    
-

@@ -16,6 +16,7 @@ discord: lukaskarasek__77224
 # TODO: check for Response 200 
 
 import csv
+import os
 import requests
 from bs4 import BeautifulSoup
 
@@ -98,12 +99,30 @@ def scrape_results_for_town(link_to_town='https://www.volby.cz/pls/ps2017/ps311?
     # find all table tags on page and save them to a variable (list of tables)
     tables = html_beautifulsoup.find_all('table')
 
-    # scrape registed electors (td with 'sa2' headers), envelopes ('sa3') and valid votes ('sa6')
+    # scrape registed electors (td with 'sa2' headers), envelopes ('sa3') and valid votes ('sa6') 
+    # (they all are in first table on the page)
     registred_electors = tables[0].find('td', {'headers': 'sa2'}).getText()
     envelopes = tables[0].find('td', {'headers': 'sa3'}).getText()
     valid_votes = tables[0].find('td', {'headers': 'sa6'}).getText()
 
-    return (registred_electors, envelopes, valid_votes)
+    party_names = []
+    party_votes = []
+
+    # cycle through tables (skip first teble where there are no party results)
+    for e, table in enumerate(tables[1:]):
+        # set counters for party name (td with header t*sb1) and votes (td with t*sb3) - * = order of table
+        party_name_header =  f't{e + 1}sb2'
+        party_vote_header =  f't{e + 1}sb3'
+
+        # store all party names and all results (order is same in both lists)
+        all_party_names = table.find_all('td', {'headers': party_name_header, 'class': 'overflow_name'})
+        all_party_votes = table.find_all('td', {'headers': party_vote_header, 'class': 'cislo'})
+
+        for name, votes in zip(all_party_names, all_party_votes):
+            party_names.append(name.getText())
+            party_votes.append(votes.getText())
+
+    return (registred_electors, envelopes, valid_votes, tuple(party_names), tuple(party_votes))
 
 def collect_results(towns_list):
     towns_list = {key: towns_list[key] for key in list(towns_list.keys())[:2]} # testing line - shoren towns_list to avoid too many requests
@@ -115,28 +134,35 @@ def collect_results(towns_list):
     for e, (town, code_and_link) in enumerate(towns_list.items()):
         temp_row = [code_and_link[0], town]
         temp_results_for_town = scrape_results_for_town(code_and_link[1])
-        for temp_town_number in temp_results_for_town:
+
+        # store first three values (registed electors, envelopes and valid votes)
+        for temp_town_number in temp_results_for_town[:3]:
             temp_row.append(temp_town_number)
+
+        # adding party names and votes to row
+        for party_name, party_votes in zip(temp_results_for_town[3], temp_results_for_town[4]):
+            # only for the first time add party names to header (which is already added to results_for_all_town)
+            if e == 0:
+                row_results_header.append(party_name)
+            temp_row.append(party_votes)
+        
+        # add actual row to the list of all rows
         results_for_all_town.append(temp_row)
     return results_for_all_town
 
 def save_csv(file_name, results):
-    results_file = open(file_name, mode='w', encoding='utf-8')
-    results_writer = csv.writer(results_file)
 
-    # temporary
-    results_writer.writerows(results)
-    # for row in results:
-    #     results_writer.writerows(results)
+    # open file with context manager
+    with open(file_name, mode='w', encoding='utf-8') as results_file:
+        results_writer = csv.writer(results_file)
+        results_writer.writerows(results)
 
-    # results_writer.writerow(results[0])
-    # results_writer.writerow(results[1])
-
-    results_file.close()
+    # check if file was created and send it as result
+    return os.path.isfile(file_name)
 
 if __name__ == "__main__":
     # temp_results = scrape_results_for_town('http://httpbin.org/status/404') # testing line
-    # temp_results = scrape_results_for_town() # testing line
+    temp_results = scrape_results_for_town() # testing line
 
     pass
     
