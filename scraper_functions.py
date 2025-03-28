@@ -6,18 +6,29 @@ email: lukas@lukaskarasek.cz
 discord: lukaskarasek__77224
 """
 
-# TODO: check for Response 200 
-
 import csv
 import os
+import sys
 import requests
 from bs4 import BeautifulSoup
 
 link_base = "https://www.volby.cz/pls/ps2017nss/"
 link_elections = link_base + "ps3?xjazyk=CZ"
 
+language = {
+    "no_argv": "Nezadali jste žádný argument. Pro nápovědu se podívejte do souboru README.md. Program ukončen.",
+    "missing_district": "Region » {} « není v seznamu regionů. Pro vypsání regionů spusťte skript s argumentem: seznam",
+    "successfully_saved": "Soubor » {} « byl úspěšně uložen.",
+    "progress": "Stahuji vyžádané data, chvíli to může trvat...",
+    "request_error": "Nastala chyba modulu 'request' při pokusu našíst obsah. Chyba:\n{}",
+    "missing_table_tag": "Na zadané adrese se nenachází předpokládaná data (tag <table>)",
+    "address_check": "Zkontrolujte požadovanu adresu:\n{}",
+    "error_404": "Chyba: Stránka nenalezena (404)",
+    "error_unknown": "Chyba: Neznámá chyba ({})"
+}
+
 def load_all_tables(webpage: str):
-    """Load all tags <table> from a link
+    """Load all tags <table> from a provided link and return them as a list.
 
     Args:
         webpage (str): Link to webpage to be scrape
@@ -26,12 +37,32 @@ def load_all_tables(webpage: str):
         list: List of <table> tags
     """
     # load whole page to a variable and parse it
-    html_source = requests.get(webpage)
+    try:
+        html_source = requests.get(webpage)
+
+        if html_source.status_code == 200:
+            pass  # úspěšně načteno
+        elif html_source.status_code == 404:
+            print(language["error_404"])
+            sys.exit()
+        else:
+            print(language["error_unknown"].format(html_source.status_code))
+            sys.exit()
+
+    except requests.exceptions.RequestException as e:
+        print(language["request_error"].format(e))
+        sys.exit()
+
     html_beautifulsoup = BeautifulSoup(html_source.text, 'html.parser')
 
     # find all table tags on page and return them (list of tables)
     tables = html_beautifulsoup.find_all('table')
-    return tables
+    if len(tables):
+        return tables
+    else:
+        print(language["missing_table_tag"])
+        print(language["address_check"].format(webpage))
+        sys.exit()
 
 def get_links_to_districts(webpage):
     """From the website volby.cz from results for year 2017 gets links
@@ -92,6 +123,12 @@ def get_links_to_town_results(link_town_results, save_codes=False):
 
 def scrape_results_for_town(link_to_town):
     # load all tables
+    # kontroluj jestli je tabulka prázdná
+
+    # if len(tables := load_all_tables(link_to_town)):
+    #     pass
+    # else:
+    #     pass
     tables = load_all_tables(link_to_town)
 
     # scrape registed electors (td with 'sa2' headers), envelopes ('sa3') and valid votes ('sa6') 
@@ -164,5 +201,5 @@ def save_csv(file_name, results):
     return os.path.isfile(file_name)
 
 if __name__ == "__main__":
-    # temp_results = scrape_results_for_town('http://httpbin.org/status/404') # testing line
+    # temp_results = scrape_results_for_town('http://httpbin.org/status/200') # testing line
     pass
