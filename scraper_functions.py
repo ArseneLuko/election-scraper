@@ -27,7 +27,8 @@ language = {
         "missing_table_tag": "Na zadané adrese se nenachází předpokládaná data (tag <table>)",
         "address_check": "Zkontrolujte požadovanu adresu:\n{}",
         "error_404": "Chyba: Stránka nenalezena (404)",
-        "error_unknown": "Chyba: Neznámá chyba ({})"
+        "error_unknown": "Chyba: Neznámá chyba ({})",
+        "unsupported_lang": "Unsupported language. Continue in czech. / Nepodporovaný jazyk, pokračuji v četině."
     },
     "en": {
         "no_argv": "You did not provide any arguments. For help, please refer to the README.md file. Program terminated.",
@@ -38,7 +39,8 @@ language = {
         "missing_table_tag": "The expected data (tag <table>) is not found at the specified address",
         "address_check": "Please check the requested address:\n{}",
         "error_404": "Error: Page not found (404)",
-        "error_unknown": "Error: Unknown error ({})"
+        "error_unknown": "Error: Unknown error ({})",
+        "unsupported_lang": "Unsupported language. Continue in czech."
     }
 }
 
