@@ -12,15 +12,15 @@ import scraper_functions as sf
 if __name__ == "__main__":
     # Load links for all districts to a dictionary
     district_list = sf.get_links_to_districts(sf.link_elections)
-    # district_list = scraper_functions.get_links_to_districts('http://httpbin.org/status/404') # testing line
+    # district_list = sf.get_links_to_districts('http://httpbin.org/status/404') # testing line
 
     # Quit if no arguments were given 
     if len(sf.sys.argv) == 1:
-        print(sf.language["no_argv"])
+        print(sf.language[sf.lang]["no_argv"])
         sf.sys.exit()
 
     # Output list of reginos
-    if sf.sys.argv[1].lower() == "seznam":
+    if sf.sys.argv[1].lower() in ("seznam", "list"):
         for district in district_list.keys():
             print(district)
         sf.sys.exit()
@@ -31,7 +31,7 @@ if __name__ == "__main__":
 
         # Get list of towns for the district and scrape results for each town to results
         towns_list = sf.get_links_to_town_results(district_link)
-        print(sf.language["progress"])
+        print(sf.language[sf.lang]["progress"])
         results = sf.collect_results(towns_list)
 
         # Save results to a file
@@ -49,8 +49,8 @@ if __name__ == "__main__":
         save_status = sf.save_csv(results_file_name, results)
         
         if save_status:
-            print(sf.language["successfully_saved"].format(results_file_name))
+            print(sf.language[sf.lang]["successfully_saved"].format(results_file_name))
 
     # If the region is not in the list
     else:
-        print(sf.language["missing_district"].format(sf.sys.argv[1]))
+        print(sf.language[sf.lang]["missing_district"].format(sf.sys.argv[1]))

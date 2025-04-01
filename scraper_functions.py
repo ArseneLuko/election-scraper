@@ -15,17 +15,36 @@ from bs4 import BeautifulSoup
 link_base = "https://www.volby.cz/pls/ps2017nss/"
 link_elections = link_base + "ps3?xjazyk=CZ"
 
+lang = "cz"
+
 language = {
-    "no_argv": "Nezadali jste žádný argument. Pro nápovědu se podívejte do souboru README.md. Program ukončen.",
-    "missing_district": "Region » {} « není v seznamu regionů. Pro vypsání regionů spusťte skript s argumentem: seznam",
-    "successfully_saved": "Soubor » {} « byl úspěšně uložen.",
-    "progress": "Stahuji vyžádané data, chvíli to může trvat...",
-    "request_error": "Nastala chyba modulu 'request' při pokusu našíst obsah. Chyba:\n{}",
-    "missing_table_tag": "Na zadané adrese se nenachází předpokládaná data (tag <table>)",
-    "address_check": "Zkontrolujte požadovanu adresu:\n{}",
-    "error_404": "Chyba: Stránka nenalezena (404)",
-    "error_unknown": "Chyba: Neznámá chyba ({})"
+    "cz": {
+        "no_argv": "Nezadali jste žádný argument. Pro nápovědu se podívejte do souboru README.md. Program ukončen.",
+        "missing_district": "Region » {} « není v seznamu regionů. Pro vypsání regionů spusťte skript s argumentem: seznam",
+        "successfully_saved": "Soubor » {} « byl úspěšně uložen.",
+        "progress": "Stahuji vyžádané data, chvíli to může trvat...",
+        "request_error": "Nastala chyba modulu 'request' při pokusu našíst obsah. Chyba:\n{}",
+        "missing_table_tag": "Na zadané adrese se nenachází předpokládaná data (tag <table>)",
+        "address_check": "Zkontrolujte požadovanu adresu:\n{}",
+        "error_404": "Chyba: Stránka nenalezena (404)",
+        "error_unknown": "Chyba: Neznámá chyba ({})"
+    },
+    "en": {
+        "no_argv": "You did not provide any arguments. For help, please refer to the README.md file. Program terminated.",
+        "missing_district": "Region » {} « is not in the list of regions. To display the regions, run the script with the argument: list.",
+        "successfully_saved": "The file » {} « has been successfully saved.",
+        "progress": "Downloading requested data, this may take a moment...",
+        "request_error": "An error occurred in the 'request' module while trying to retrieve content. Error:\n{}",
+        "missing_table_tag": "The expected data (tag <table>) is not found at the specified address",
+        "address_check": "Please check the requested address:\n{}",
+        "error_404": "Error: Page not found (404)",
+        "error_unknown": "Error: Unknown error ({})"
+    }
 }
+
+def change_language(choosen_lang):
+    global lang
+    lang = choosen_lang
 
 def load_all_tables(webpage: str):
     """Load all tags <table> from a provided link and return them as a list.
@@ -43,14 +62,15 @@ def load_all_tables(webpage: str):
         if html_source.status_code == 200:
             pass  # úspěšně načteno
         elif html_source.status_code == 404:
-            print(language["error_404"])
+            print(language[lang]["error_404"])
+            print(language[lang]["address_check"].format(webpage))
             sys.exit()
         else:
-            print(language["error_unknown"].format(html_source.status_code))
+            print(language[lang]["error_unknown"].format(html_source.status_code))
             sys.exit()
 
     except requests.exceptions.RequestException as e:
-        print(language["request_error"].format(e))
+        print(language[lang]["request_error"].format(e))
         sys.exit()
 
     html_beautifulsoup = BeautifulSoup(html_source.text, 'html.parser')
@@ -60,8 +80,8 @@ def load_all_tables(webpage: str):
     if len(tables):
         return tables
     else:
-        print(language["missing_table_tag"])
-        print(language["address_check"].format(webpage))
+        print(language[lang]["missing_table_tag"])
+        print(language[lang]["address_check"].format(webpage))
         sys.exit()
 
 def get_links_to_districts(webpage):
