@@ -36,7 +36,7 @@ if __name__ == "__main__":
     # Check for 2nd argument, if missing create default file name.
     # If there is no '.csv' extension, it will be added
     # If there are only 2 arguments and last one is --en or --english (so missing file name the .strip() is used to set en.csv or english.csv as a file name)
-    if len(sf.sys.argv) >= 3:
+    if sf.sys.argv[2] not in ("--english", "--en") and len(sf.sys.argv) >= 3:
         if sf.sys.argv[2][-4:] == '.csv':
             results_file_name = sf.sys.argv[2].strip('-')
         else:

@@ -1,6 +1,6 @@
 """
 scraper_html_functions.py: 
-part of the project 03 in Engeto, main script file: scraper.py
+part of the project 03 in Engeto "Election Scraper", main script file: scraper.py
 author: Lukáš Karásek
 email: lukas@lukaskarasek.cz
 discord: lukaskarasek__77224
@@ -44,7 +44,12 @@ language = {
     }
 }
 
-def change_language(choosen_lang):
+def change_language(choosen_lang: str):
+    """Set the languege by changing global variable 'lang'
+
+    Args:
+        choosen_lang (str): two character code for language
+    """
     global lang
     lang = choosen_lang
 
@@ -52,17 +57,17 @@ def load_all_tables(webpage: str):
     """Load all tags <table> from a provided link and return them as a list.
 
     Args:
-        webpage (str): Link to webpage to be scrape
+        webpage (str): Link to a webpage to be scrape
 
     Returns:
-        list: List of <table> tags
+        list: List of \<table> tags
     """
     # load whole page to a variable and parse it
     try:
         html_source = requests.get(webpage)
 
         if html_source.status_code == 200:
-            pass  # úspěšně načteno
+            pass  # successfully loaded
         elif html_source.status_code == 404:
             print(language[lang]["error_404"])
             print(language[lang]["address_check"].format(webpage))
@@ -70,7 +75,6 @@ def load_all_tables(webpage: str):
         else:
             print(language[lang]["error_unknown"].format(html_source.status_code))
             sys.exit()
-
     except requests.exceptions.RequestException as e:
         print(language[lang]["request_error"].format(e))
         sys.exit()
@@ -78,6 +82,7 @@ def load_all_tables(webpage: str):
     html_beautifulsoup = BeautifulSoup(html_source.text, 'html.parser')
 
     # find all table tags on page and return them (list of tables)
+    # if there is no <table> tag exit the script
     tables = html_beautifulsoup.find_all('table')
     if len(tables):
         return tables
@@ -86,10 +91,14 @@ def load_all_tables(webpage: str):
         print(language[lang]["address_check"].format(webpage))
         sys.exit()
 
-def get_links_to_districts(webpage):
-    """From the website volby.cz from results for year 2017 gets links
-    to all districts (Okresy) and return them as a dictionary with
-    pairs: "name of region": "link"
+def get_links_to_districts(webpage: str):
+    """Scrape links to all regions from the provided webpage and return them as a dictionary with pairs: "name of region": "link"
+
+    Args:
+        webpage (str): Link to webpage with election results
+
+    Returns:
+        dict: Dictionary of all regions {"name of region": "link"}
     """
 
     # load all tables
@@ -116,7 +125,7 @@ def get_links_to_districts(webpage):
 
     return list_of_regions_and_links
 
-def get_links_to_town_results(link_town_results, save_codes=False):
+def get_links_to_town_results(link_town_results):
     # load all tables
     tables = load_all_tables(link_town_results)
 
