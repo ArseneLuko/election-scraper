@@ -1,6 +1,5 @@
 """
-scraper_html_functions.py: 
-part of the project 03 in Engeto "Election Scraper", main script file: scraper.py
+scraper_html_functions.py: part of the project 03 in Engeto "Election Scraper", main script file: scraper.py
 author: Lukáš Karásek
 email: lukas@lukaskarasek.cz
 discord: lukaskarasek__77224
@@ -28,7 +27,8 @@ language = {
         "address_check": "Zkontrolujte požadovanu adresu:\n{}",
         "error_404": "Chyba: Stránka nenalezena (404)",
         "error_unknown": "Chyba: Neznámá chyba ({})",
-        "unsupported_lang": "Unsupported language. Continue in czech. / Nepodporovaný jazyk, pokračuji v četině."
+        "unsupported_lang": "Unsupported language. Continue in czech. / Nepodporovaný jazyk, pokračuji v četině.",
+        "no_primary_file": "Soubor » {} « není hlavní soubor. Spusťe skript » scraper.py « / File » {} « is not the main file. Run the script » scraper.py «"
     },
     "en": {
         "no_argv": "You did not provide any arguments. For help, please refer to the README.md file. Program terminated.",
@@ -40,7 +40,8 @@ language = {
         "address_check": "Please check the requested address:\n{}",
         "error_404": "Error: Page not found (404)",
         "error_unknown": "Error: Unknown error ({})",
-        "unsupported_lang": "Unsupported language. Continue in czech."
+        "unsupported_lang": "Unsupported language. Continue in czech. / Nepodporovaný jazyk, pokračuji v četině.",
+        "no_primary_file": "Soubor » {} « není hlavní soubor. Spusťe skript » scraper.py « / File » {} « is not the main file. Run the script » scraper.py «"
     }
 }
 
@@ -54,13 +55,13 @@ def change_language(choosen_lang: str):
     lang = choosen_lang
 
 def load_all_tables(webpage: str):
-    """Load all tags <table> from a provided link and return them as a list.
+    """Load all tags table from a provided link and return them as a list.
 
     Args:
         webpage (str): Link to a webpage to be scrape
 
     Returns:
-        list: List of \<table> tags
+        list: List of table tags
     """
     # load whole page to a variable and parse it
     try:
@@ -100,7 +101,6 @@ def get_links_to_districts(webpage: str):
     Returns:
         dict: Dictionary of all regions {"name of region": "link"}
     """
-
     # load all tables
     tables = load_all_tables(webpage)
 
@@ -125,7 +125,15 @@ def get_links_to_districts(webpage: str):
 
     return list_of_regions_and_links
 
-def get_links_to_town_results(link_town_results):
+def get_links_to_town_results(link_town_results: str):
+    """Scrape all towns and it's code and link from the link
+
+    Args:
+        link_town_results (str): Link to region from district_link list
+
+    Returns:
+        dict: {'town_name': ('code', 'link')}
+    """
     # load all tables
     tables = load_all_tables(link_town_results)
 
@@ -152,17 +160,19 @@ def get_links_to_town_results(link_town_results):
 
     return list_of_towns_and_links
 
-def scrape_results_for_town(link_to_town):
-    # load all tables
-    # kontroluj jestli je tabulka prázdná
+def scrape_results_for_town(link_to_town: str):
+    """Scrape registred electors, envelopes, valid votes, all party names and their votes for one town.
 
-    # if len(tables := load_all_tables(link_to_town)):
-    #     pass
-    # else:
-    #     pass
+    Args:
+        link_to_town (str): Link to one town in choosen region from towns_list from district_link list
+
+    Returns:
+        tuple: (registred_electors, envelopes, valid_votes, tuple(party_names), tuple(party_votes))
+    """
+    # load all tables
     tables = load_all_tables(link_to_town)
 
-    # scrape registed electors (td with 'sa2' headers), envelopes ('sa3') and valid votes ('sa6') 
+    # scrape registed electors (<td> with 'sa2' headers), envelopes ('sa3') and valid votes ('sa6') 
     # (they all are in first table on the page)
     registred_electors = tables[0].find('td', {'headers': 'sa2'}).getText()
     envelopes = tables[0].find('td', {'headers': 'sa3'}).getText()
@@ -187,8 +197,18 @@ def scrape_results_for_town(link_to_town):
 
     return (registred_electors, envelopes, valid_votes, tuple(party_names), tuple(party_votes))
 
-def collect_results(towns_list):
-    towns_list = {key: towns_list[key] for key in list(towns_list.keys())[:2]} # testing line - shoren towns_list to avoid too many requests
+def collect_results(towns_list: str):
+    """Collect data for all towns in choosen region. And store them in list of lists, where each list represents one row.
+
+    Args:
+        towns_list (str): Link to all town's in choosen region.
+
+    Returns:
+        list: list of lists, where each list represents one row \n
+        order: ['code', 'location', 'registred', 'envelopes', 'valid', '1st_party_name', '2nd_party_name', ... ,'nth_party_name']
+        
+    """
+    # towns_list = {key: towns_list[key] for key in list(towns_list.keys())[:2]} # testing line - shoren towns_list to avoid too many requests
 
     row_results_header = ["code", "location", "registred", "envelopes", "valid"]
     results_for_all_town = list()
@@ -233,4 +253,4 @@ def save_csv(file_name, results):
 
 if __name__ == "__main__":
     # temp_results = scrape_results_for_town('http://httpbin.org/status/200') # testing line
-    pass
+    print(language[lang]["no_primary_file"].format(os.path.basename(__file__), os.path.basename(__file__)))
