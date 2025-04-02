@@ -11,9 +11,10 @@ Run the main script 'scraper.py' with at least one argument: the name of the dis
 To save the results from the district of Frýdek-Místek to the file vysledky_z_FM.csv, run the script: 
 ```scraper.py Frýdek-Místek vysledky_z_FM.csv```<br>
 If you want the script to communicate in English, add the argument '--en': 
-```scraper.py Frýdek-Místek vysledky_z_FM.csv --en```
+```scraper.py Frýdek-Místek vysledky_z_FM.csv --en```<br>
+If you want results for a district that contains spaces in its name, enter the district name in quotes: ```scraper.py 'Rychnov nad Kněžnou' vysledky_z_rychnova.csv```
 
-## Argumenty
+## Arguments
 ### Name of District - First Argument
 Input a region name, using the exact form as it is stored in Czech language. For example: ```scraper.py Praha```
 To list all regions, run ```scraper.py list```.
@@ -36,7 +37,8 @@ Pomocí ```pip install -r requirements.txt``` nainstalujte potřebné knihovny d
 ## Jak skript spustit
 Spusťte hlavní skript 'scraper.py' s alespoň jedním argumentem: názvem okresu, pro který chcete výsledky (více podrobností níže). Druhý argument je název CSV souboru. Pokud poskytnete pouze jeden argument, skript se spustí a uloží výsledky do souboru 'results.csv' (pozor, přepíše se starší soubor se stejným názvem, pokud existuje). Můžete vypsat všechny okresy spuštěním skriptu s argumentem 'seznam'. Primární jazyk je čeština; skript můžete spustit v angličtině pomocí "--en" nebo "--english" jako posledního argumentu.<br>
 Pro uložení výsledků z okresu Frýdek-Místek do souboru vysledky_z_FM.csv spusťe skript: ```scraper.py Frýdek-Místek vysledky_z_FM.csv```<br>
-Pokud chcete, aby skript komunikoval v angličtině, přidejte argument '--en': ```scraper.py Frýdek-Místek vysledky_z_FM.csv --en```
+Pokud chcete, aby skript komunikoval v angličtině, přidejte argument '--en': ```scraper.py Frýdek-Místek vysledky_z_FM.csv --en```<br>
+Pokud chcete výsledky pro okres, který obsahuje v názvu mezery, zadejte název okresu do uvozovek: ```scraper.py 'Rychnov nad Kněžnou' vysledky_z_rychnova.csv```
 
 ## Argumenty
 
