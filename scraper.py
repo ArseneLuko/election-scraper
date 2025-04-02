@@ -12,9 +12,9 @@ import scraper_functions as sf
 if __name__ == "__main__":
     # Set the language
     # If there is last argument --english or --en set the language to english
-    if 1 and sf.sys.argv[-1] in ("--english", "--en"):
+    if sf.sys.argv[-1] in ("--english", "--en"):
         sf.change_language("en")
-    elif len(sf.sys.argv) > 1:
+    elif len(sf.sys.argv) > 3:
         print(sf.language[sf.lang]["unsupported_lang"])
 
     # Load links for all districts to a dictionary
