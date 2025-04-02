@@ -163,9 +163,7 @@ cython_debug/
 pokusy_scraper.py
 notes.md
 projekt_03-scraper.code-workspace
-get_links_to_districts.py
-moje_testy.py
 .DS_Store
 .vscode/launch.json
 .vscode/settings.json
-*.csv
+moje_testy.py
