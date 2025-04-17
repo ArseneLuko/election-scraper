@@ -1,95 +1,59 @@
 """
-scraper_html_functions.py: part of the project 03 in Engeto "Election Scraper", main script file: scraper.py
+main.py: Third project with Engeto Online Python Akademie,
+this script will scrape results from web from elections in 2017 in Czechia for 
+specified region. How to use the script, see README.md
 author: Lukáš Karásek
-email: lukas@lukaskarasek.cz
+e-mail: lukas@lukaskarasek.cz
 discord: lukaskarasek__77224
 """
 
+import sys
 import csv
 import os
-import sys
 import requests
 from bs4 import BeautifulSoup
+
+import scraper_language as slang
 
 link_base = "https://www.volby.cz/pls/ps2017nss/"
 link_elections = link_base + "ps3?xjazyk=CZ"
 
-lang = "cz"
-
-language = {
-    "cz": {
-        "no_argv": "Nezadali jste žádný argument. Pro nápovědu se podívejte do souboru README.md. Program ukončen.",
-        "missing_district": "Region » {} « není v seznamu regionů. Pro vypsání regionů spusťte skript s argumentem: seznam",
-        "successfully_saved": "Soubor » {} « byl úspěšně uložen.",
-        "progress": "Stahuji vyžádané data, chvíli to může trvat...",
-        "request_error": "Nastala chyba modulu 'request' při pokusu našíst obsah. Chyba:\n{}",
-        "missing_table_tag": "Na zadané adrese se nenachází předpokládaná data (tag <table>)",
-        "address_check": "Zkontrolujte požadovanu adresu:\n{}",
-        "error_404": "Chyba: Stránka nenalezena (404)",
-        "error_unknown": "Chyba: Neznámá chyba ({})",
-        "unsupported_lang": "Unsupported language. Continue in czech. / Nepodporovaný jazyk, pokračuji v četině.",
-        "no_primary_file": "Soubor » {} « není hlavní soubor. Spusťe skript » scraper.py « / File » {} « is not the main file. Run the script » scraper.py «"
-    },
-    "en": {
-        "no_argv": "You did not provide any arguments. For help, please refer to the README.md file. Program terminated.",
-        "missing_district": "Region » {} « is not in the list of regions. To display the regions, run the script with the argument: list.",
-        "successfully_saved": "The file » {} « has been successfully saved.",
-        "progress": "Downloading requested data, this may take a moment...",
-        "request_error": "An error occurred in the 'request' module while trying to retrieve content. Error:\n{}",
-        "missing_table_tag": "The expected data (tag <table>) is not found at the specified address",
-        "address_check": "Please check the requested address:\n{}",
-        "error_404": "Error: Page not found (404)",
-        "error_unknown": "Error: Unknown error ({})",
-        "unsupported_lang": "Unsupported language. Continue in czech. / Nepodporovaný jazyk, pokračuji v četině.",
-        "no_primary_file": "Soubor » {} « není hlavní soubor. Spusťe skript » scraper.py « / File » {} « is not the main file. Run the script » scraper.py «"
-    }
-}
-
-def change_language(choosen_lang: str):
-    """Set the languege by changing global variable 'lang'
-
-    Args:
-        choosen_lang (str): two character code for language
-    """
-    global lang
-    lang = choosen_lang
-
 def load_all_tables(webpage: str):
-    """Load all tags table from a provided link and return them as a list.
+    """Load all table tags from a provided link and return them as a list.
 
     Args:
-        webpage (str): Link to a webpage to be scrape
+        webpage (str): Link to a webpage to be scraped.
 
     Returns:
         list: List of table tags
     """
-    # load whole page to a variable and parse it
+
     try:
         html_source = requests.get(webpage)
 
         if html_source.status_code == 200:
             pass  # successfully loaded
         elif html_source.status_code == 404:
-            print(language[lang]["error_404"])
-            print(language[lang]["address_check"].format(webpage))
+            print(slang.language[slang.lang]["error_404"])
+            print(slang.language[slang.lang]["address_check"].format(webpage))
             sys.exit()
         else:
-            print(language[lang]["error_unknown"].format(html_source.status_code))
+            print(slang.language[slang.lang]["error_unknown"].format(html_source.status_code))
             sys.exit()
     except requests.exceptions.RequestException as e:
-        print(language[lang]["request_error"].format(e))
+        print(slang.language[slang.lang]["request_error"].format(e))
         sys.exit()
 
     html_beautifulsoup = BeautifulSoup(html_source.text, 'html.parser')
 
-    # find all table tags on page and return them (list of tables)
-    # if there is no <table> tag exit the script
+    # Find all table tags on page and return them (list of tables),
+    # if there is no <table> tag: exit the script
     tables = html_beautifulsoup.find_all('table')
     if len(tables):
         return tables
     else:
-        print(language[lang]["missing_table_tag"])
-        print(language[lang]["address_check"].format(webpage))
+        print(slang.language[slang.lang]["missing_table_tag"])
+        print(slang.language[slang.lang]["address_check"].format(webpage))
         sys.exit()
 
 def get_links_to_districts(webpage: str):
@@ -101,12 +65,10 @@ def get_links_to_districts(webpage: str):
     Returns:
         dict: Dictionary of all regions {"name of region": "link"}
     """
-    # load all tables
-    tables = load_all_tables(webpage)
 
-    # create a dictionary with pairs: name of a region 
-    # and a link to its list of towns
+    tables = load_all_tables(webpage)
     list_of_regions_and_links = {}
+
     for e, region in enumerate(tables):
         # link 'X' in 'td' with attribut header t*sa3 links to list of all towns in a district - all districts in regions has same attribute: t1sa3, t2sa3, ..., t14sa3 
         # same for the name of district in 'td' tag with header attribute t*sb2
@@ -134,12 +96,10 @@ def get_links_to_town_results(link_town_results: str):
     Returns:
         dict: {'town_name': ('code', 'link')}
     """
-    # load all tables
-    tables = load_all_tables(link_town_results)
 
-    # create a dictionary with pairs: name of a town 
-    # and a link to its results
+    tables = load_all_tables(link_town_results)
     list_of_towns_and_links = {}
+
     for e, town in enumerate(tables):
         # link to results is in first collumn - <td> with header 
         # attribute 't*sb1' where the number at second position 
@@ -169,10 +129,10 @@ def scrape_results_for_town(link_to_town: str):
     Returns:
         tuple: (registred_electors, envelopes, valid_votes, tuple(party_names), tuple(party_votes))
     """
-    # load all tables
     tables = load_all_tables(link_to_town)
 
-    # scrape registed electors (<td> with 'sa2' headers), envelopes ('sa3') and valid votes ('sa6') 
+    # scrape registed electors (<td> with 'sa2' headers), envelopes ('sa3') 
+    # and valid votes ('sa6') 
     # (they all are in first table on the page)
     registred_electors = tables[0].find('td', {'headers': 'sa2'}).getText()
     envelopes = tables[0].find('td', {'headers': 'sa3'}).getText()
@@ -181,7 +141,7 @@ def scrape_results_for_town(link_to_town: str):
     party_names = []
     party_votes = []
 
-    # cycle through tables (skip first teble where there are no party results)
+    # cycle through tables (skip first table where there are no party results)
     for e, table in enumerate(tables[1:]):
         # set counters for party name (td with header t*sb1) and votes (td with t*sb3) - * = order of table
         party_name_header =  f't{e + 1}sb2'
@@ -208,7 +168,7 @@ def collect_results(towns_list: str):
         order: ['code', 'location', 'registred', 'envelopes', 'valid', '1st_party_name', '2nd_party_name', ... ,'nth_party_name']
         
     """
-    # towns_list = {key: towns_list[key] for key in list(towns_list.keys())[:2]} # testing line - shoren towns_list to avoid too many requests
+    towns_list = {key: towns_list[key] for key in list(towns_list.keys())[:2]} # testing line - shorten towns_list to avoid too many requests while testing
 
     row_results_header = ["code", "location", "registred", "envelopes", "valid"]
     results_for_all_town = list()
@@ -243,7 +203,7 @@ def save_csv(file_name, results):
     Returns:
         bool: Returns true if file exists after savig
     """
-    # Open file with context manager
+
     with open(file_name, mode='w', encoding='utf-8') as results_file:
         results_writer = csv.writer(results_file)
         results_writer.writerows(results)
@@ -252,5 +212,47 @@ def save_csv(file_name, results):
     return os.path.isfile(file_name)
 
 if __name__ == "__main__":
-    # temp_results = scrape_results_for_town('http://httpbin.org/status/200') # testing line
-    print(language[lang]["no_primary_file"].format(os.path.basename(__file__), os.path.basename(__file__)))
+    # Set the language
+    if sys.argv[-1] in ("--english", "--en"):
+        slang.change_language("en")
+    elif len(sys.argv) > 3:
+        print(slang.language[slang.lang]["unsupported_lang"])
+
+    # Check for number of arguments 
+    if len(sys.argv) < 3:
+        print(slang.language[slang.lang]["no_argv"])
+        sys.exit()
+
+    # Load links for all districts to a dictionary
+    district_list = get_links_to_districts(link_elections)
+
+    # Output list of reginos
+    if sys.argv[1].lower() in ("seznam", "list"):
+        for district in district_list.keys():
+            print(district)
+        sys.exit()
+
+    # Get a file name from 2nd argument
+    if sys.argv[2][-4:] == '.csv':
+        results_file_name = sys.argv[2].strip('-')
+    else:
+        results_file_name = sys.argv[2].strip('-') + '.csv'
+
+    # Process requested district, if it is existing one
+    if sys.argv[1] in district_list:
+        district_link = district_list[sys.argv[1]]
+
+        # Get list of towns for the district and scrape results for each
+        towns_list = get_links_to_town_results(district_link)
+        print(slang.language[slang.lang]["progress"])
+        results = collect_results(towns_list)
+
+        # Save results to the csv file and if it exists, print message
+        save_status = save_csv(results_file_name, results)
+        
+        if save_status:
+            print(slang.language[slang.lang]["successfully_saved"].format(results_file_name))
+
+        # If the region is not in the list
+    else:
+        print(slang.language[slang.lang]["missing_district"].format(sys.argv[1]))
