@@ -167,3 +167,4 @@ projekt_03-scraper.code-workspace
 .vscode/launch.json
 .vscode/settings.json
 moje_testy.py
+scraper_language.py

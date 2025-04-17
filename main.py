@@ -13,10 +13,45 @@ import os
 import requests
 from bs4 import BeautifulSoup
 
-import scraper_language as slang
-
 link_base = "https://www.volby.cz/pls/ps2017nss/"
 link_elections = link_base + "ps3?xjazyk=CZ"
+lang = "cz"
+
+language = {
+    "cz": {
+        "no_argv": "Nezadali jste potřebný počet argumentů (okres a název souboru). Pro nápovědu se podívejte do souboru README.md. Program ukončen.",
+        "missing_district": "Region » {} « není v seznamu regionů. Pro vypsání regionů spusťte skript s argumentem: seznam",
+        "successfully_saved": "Soubor » {} « byl úspěšně uložen.",
+        "progress": "Stahuji vyžádaná data, chvíli to může trvat...",
+        "request_error": "Nastala chyba modulu 'request' při pokusu našíst obsah. Chyba:\n{}",
+        "missing_table_tag": "Na zadané adrese se nenachází předpokládaná data (tag <table>)",
+        "address_check": "Zkontrolujte požadovanu adresu:\n{}",
+        "error_404": "Chyba: Stránka nenalezena (404)",
+        "error_unknown": "Chyba: Neznámá chyba ({})",
+        "unsupported_lang": "Unsupported language. Continue in czech. / Nepodporovaný jazyk, pokračuji v četině."
+    },
+    "en": {
+        "no_argv": "You did not provide the required number of arguments (district and file name). For help, please refer to the README.md file. Program terminated.",
+        "missing_district": "Region » {} « is not in the list of regions. To display the regions, run the script with the argument: list.",
+        "successfully_saved": "The file » {} « has been successfully saved.",
+        "progress": "Downloading requested data, this may take a moment...",
+        "request_error": "An error occurred in the 'request' module while trying to retrieve content. Error:\n{}",
+        "missing_table_tag": "The expected data (tag <table>) is not found at the specified address",
+        "address_check": "Please check the requested address:\n{}",
+        "error_404": "Error: Page not found (404)",
+        "error_unknown": "Error: Unknown error ({})",
+        "unsupported_lang": "Unsupported language. Continue in czech. / Nepodporovaný jazyk, pokračuji v četině."
+    }
+}
+
+def change_language(choosen_lang: str):
+    """Set the languege by changing global variable 'lang'
+
+    Args:
+        choosen_lang (str): two character code for language
+    """
+    global lang
+    lang = choosen_lang
 
 def load_all_tables(webpage: str):
     """Load all table tags from a provided link and return them as a list.
@@ -34,14 +69,14 @@ def load_all_tables(webpage: str):
         if html_source.status_code == 200:
             pass  # successfully loaded
         elif html_source.status_code == 404:
-            print(slang.language[slang.lang]["error_404"])
-            print(slang.language[slang.lang]["address_check"].format(webpage))
+            print(language[lang]["error_404"])
+            print(language[lang]["address_check"].format(webpage))
             sys.exit()
         else:
-            print(slang.language[slang.lang]["error_unknown"].format(html_source.status_code))
+            print(language[lang]["error_unknown"].format(html_source.status_code))
             sys.exit()
     except requests.exceptions.RequestException as e:
-        print(slang.language[slang.lang]["request_error"].format(e))
+        print(language[lang]["request_error"].format(e))
         sys.exit()
 
     html_beautifulsoup = BeautifulSoup(html_source.text, 'html.parser')
@@ -52,8 +87,8 @@ def load_all_tables(webpage: str):
     if len(tables):
         return tables
     else:
-        print(slang.language[slang.lang]["missing_table_tag"])
-        print(slang.language[slang.lang]["address_check"].format(webpage))
+        print(language[lang]["missing_table_tag"])
+        print(language[lang]["address_check"].format(webpage))
         sys.exit()
 
 def get_links_to_districts(webpage: str):
@@ -168,7 +203,6 @@ def collect_results(towns_list: str):
         order: ['code', 'location', 'registred', 'envelopes', 'valid', '1st_party_name', '2nd_party_name', ... ,'nth_party_name']
         
     """
-    towns_list = {key: towns_list[key] for key in list(towns_list.keys())[:2]} # testing line - shorten towns_list to avoid too many requests while testing
 
     row_results_header = ["code", "location", "registred", "envelopes", "valid"]
     results_for_all_town = list()
@@ -214,14 +248,9 @@ def save_csv(file_name, results):
 if __name__ == "__main__":
     # Set the language
     if sys.argv[-1] in ("--english", "--en"):
-        slang.change_language("en")
+        change_language("en")
     elif len(sys.argv) > 3:
-        print(slang.language[slang.lang]["unsupported_lang"])
-
-    # Check for number of arguments 
-    if len(sys.argv) < 3:
-        print(slang.language[slang.lang]["no_argv"])
-        sys.exit()
+        print(language[lang]["unsupported_lang"])
 
     # Load links for all districts to a dictionary
     district_list = get_links_to_districts(link_elections)
@@ -230,6 +259,11 @@ if __name__ == "__main__":
     if sys.argv[1].lower() in ("seznam", "list"):
         for district in district_list.keys():
             print(district)
+        sys.exit()
+
+    # Check for number of arguments 
+    if len(sys.argv) < 3:
+        print(language[lang]["no_argv"])
         sys.exit()
 
     # Get a file name from 2nd argument
@@ -244,15 +278,15 @@ if __name__ == "__main__":
 
         # Get list of towns for the district and scrape results for each
         towns_list = get_links_to_town_results(district_link)
-        print(slang.language[slang.lang]["progress"])
+        print(language[lang]["progress"])
         results = collect_results(towns_list)
 
         # Save results to the csv file and if it exists, print message
         save_status = save_csv(results_file_name, results)
         
         if save_status:
-            print(slang.language[slang.lang]["successfully_saved"].format(results_file_name))
+            print(language[lang]["successfully_saved"].format(results_file_name))
 
         # If the region is not in the list
     else:
-        print(slang.language[slang.lang]["missing_district"].format(sys.argv[1]))
+        print(language[lang]["missing_district"].format(sys.argv[1]))
